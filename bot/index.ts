@@ -154,7 +154,7 @@ async function checkMentions() {
         const authorUsername =
           targetTweet.includes?.users?.[0]?.username || "user";
         const tweetUrl = `https://x.com/${authorUsername}/status/${targetTweetId}`;
-        const rageroomLink = `${RAGEROOM_URL}/tweet?url=${encodeURIComponent(tweetUrl)}`;
+        const rageroomLink = `${RAGEROOM_URL}/x?url=${encodeURIComponent(tweetUrl)}`;
 
         // Reply to the mention with the rageroom link
         await withRetry(

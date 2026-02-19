@@ -33,7 +33,7 @@ function LeaderboardCard({
           </div>
 
           <a
-            href={`/tweet?url=${encodeURIComponent(entry.tweet_url || `https://x.com/i/status/${entry.tweet_id}`)}`}
+            href={`/x?url=${encodeURIComponent(entry.tweet_url || `https://x.com/i/status/${entry.tweet_id}`)}`}
             className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-white font-medium transition-colors text-sm"
           >
             Rage
@@ -146,7 +146,7 @@ export default function LeaderboardPage() {
               No tweets have been destroyed yet
             </div>
             <a
-              href="/tweet"
+              href="/x"
               className="inline-block px-6 py-3 bg-red-600 hover:bg-red-500 rounded-lg text-white font-medium transition-colors"
             >
               Be the first to rage
