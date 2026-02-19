@@ -113,7 +113,7 @@ export function TweetDisplay({
         src={`https://platform.twitter.com/embed/Tweet.html?id=${tweetId}&theme=light`}
         width="550"
         height={iframeHeight}
-        className="border-0"
+        className="border-0 rounded-xl"
         onLoad={() => {
           setIsLoading(false);
           onLoad?.();
@@ -124,7 +124,6 @@ export function TweetDisplay({
       <div className="absolute inset-0" />
 
       <DamageOverlay weapon={weapon} burnLevel={burnLevel} />
-
 
       {/* Hell mode indicator */}
       {isHellMode && (

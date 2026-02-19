@@ -8,3 +8,5 @@ export { TweetInput } from "./TweetInput";
 export { WeaponCursor } from "./WeaponCursor";
 export { ExplosionEffect } from "./ExplosionEffect";
 export { TomatoSplat } from "./TomatoSplat";
+export { FlyingLetter } from "./FlyingLetter";
+export { FlyingBook } from "./FlyingBook";

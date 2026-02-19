@@ -15,7 +15,10 @@ import {
   WeaponCursor,
   ExplosionEffect,
   TomatoSplat,
+  FlyingLetter,
+  FlyingBook,
 } from "@/components";
+import { saveDestroyedTweet } from "@/lib/supabase";
 
 function TweetPageContent() {
   const searchParams = useSearchParams();
@@ -38,11 +41,49 @@ function TweetPageContent() {
   const [tomatoSplats, setTomatoSplats] = useState<{ id: number; x: number; y: number }[]>([]);
   const splatIdRef = useRef(0);
 
+  // Flying letter effects (EU weapon)
+  const [flyingLetters, setFlyingLetters] = useState<{ id: number; x: number; y: number }[]>([]);
+  const letterIdRef = useRef(0);
+
+  // Flying book effects (Creative Act weapon) - supports multiple
+  const [flyingBooks, setFlyingBooks] = useState<{ id: number; x: number; y: number }[]>([]);
+  const bookIdRef = useRef(0);
+
+  // Tweet tilt (knocked by books like a crooked painting)
+  const [tweetTilt, setTweetTilt] = useState(0);
+  const [isFalling, setIsFalling] = useState(false);
+  const [fallOffset, setFallOffset] = useState(0);
+
+
+  // Check if tweet should fall
+  useEffect(() => {
+    if (Math.abs(tweetTilt) > 25 && !isFalling) {
+      setIsFalling(true);
+      // Animate falling
+      let velocity = 0;
+      const gravity = 0.15;
+      const animate = () => {
+        velocity += gravity;
+        setFallOffset(prev => {
+          const next = prev + velocity;
+          if (next > window.innerHeight) {
+            return next; // Stop when off screen
+          }
+          requestAnimationFrame(animate);
+          return next;
+        });
+      };
+      requestAnimationFrame(animate);
+    }
+  }, [tweetTilt, isFalling]);
+
   // Tweet loading state
   const [isTweetLoaded, setIsTweetLoaded] = useState(false);
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
+  const tweetContainerRef = useRef<HTMLDivElement>(null);
+  const hasSavedDestruction = useRef(false);
 
   // Custom hooks
   const { weapons, currentWeapon, selectedIndex, selectWeapon } = useWeapon();
@@ -58,10 +99,18 @@ function TweetPageContent() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
+  // Save destroyed tweet to Supabase
+  useEffect(() => {
+    if (isDestroyed && tweetId && destroyedByWeapon && !hasSavedDestruction.current) {
+      hasSavedDestruction.current = true;
+      saveDestroyedTweet(tweetId, submittedUrl, destroyedByWeapon.id);
+    }
+  }, [isDestroyed, tweetId, submittedUrl, destroyedByWeapon]);
+
   const handleMouseDown = () => {
     setIsHolding(true);
 
-    if (currentWeapon.damage.rate > 0 && currentWeapon.sound?.active) {
+    if (currentWeapon.sound?.active) {
       play(currentWeapon.sound.active);
     }
 
@@ -71,19 +120,38 @@ function TweetPageContent() {
       setTomatoSplats((prev) => [...prev, newSplat]);
     }
 
+    // Add flying letter effect when using EU weapon
+    if (currentWeapon.id === "eu") {
+      const newLetter = { id: letterIdRef.current++, x: mousePos.x, y: mousePos.y };
+      setFlyingLetters((prev) => [...prev, newLetter]);
+    }
+
+    // Add flying book effect when using Creative Act weapon (one per click)
+    if (currentWeapon.id === "grenade") {
+      play("/book.mp3");
+      setFlyingBooks(prev => [...prev, { id: bookIdRef.current++, x: mousePos.x, y: mousePos.y }]);
+    }
+
     applyDamage(currentWeapon);
   };
 
   const handleMouseUp = () => {
     setIsHolding(false);
     stopDamage();
-    stop();
+    // Only stop audio for hold-type weapons (like flamethrower), let click sounds play through
+    if (currentWeapon.damage.type === "hold") {
+      stop();
+    }
   };
 
   const handleTweetSubmit = (url: string) => {
     setSubmittedUrl(url);
     setIsTweetLoaded(false);
     reset();
+    setTweetTilt(0);
+    setIsFalling(false);
+    setFallOffset(0);
+    hasSavedDestruction.current = false;
   };
 
   const handleVolcanoDestroy = () => {
@@ -99,19 +167,128 @@ function TweetPageContent() {
     setSubmittedUrl("");
     setIsTweetLoaded(false);
     reset();
-    setTomatoSplats([]); // Clear splats when loading new tweet
+    setTomatoSplats([]);
+    setTweetTilt(0);
+    setIsFalling(false);
+    setFallOffset(0);
+    hasSavedDestruction.current = false;
+  };
+
+  const handleReset = () => {
+    reset();
+    setTomatoSplats([]);
+    setFlyingLetters([]);
+    setFlyingBooks([]);
+    setTweetTilt(0);
+    setIsFalling(false);
+    setFallOffset(0);
+    hasSavedDestruction.current = false;
+  };
+
+  const handleScreenshot = async () => {
+    if (!tweetContainerRef.current) return;
+
+    try {
+      // Get the tweet container bounds
+      const rect = tweetContainerRef.current.getBoundingClientRect();
+
+      // Request screen capture (preferCurrentTab for Chrome)
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        // @ts-expect-error - preferCurrentTab is Chrome-specific
+        preferCurrentTab: true,
+      });
+
+      // Create video element to capture frame
+      const video = document.createElement("video");
+      video.srcObject = stream;
+      await video.play();
+
+      // Wait for video to be ready
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Get the actual video dimensions
+      const videoWidth = video.videoWidth;
+      const videoHeight = video.videoHeight;
+
+      // Calculate scale between video and window
+      const scaleX = videoWidth / window.innerWidth;
+      const scaleY = videoHeight / window.innerHeight;
+
+      // Create canvas for the cropped region
+      const canvas = document.createElement("canvas");
+      const padding = 20;
+
+      canvas.width = (rect.width + padding * 2) * scaleX;
+      canvas.height = (rect.height + padding * 2) * scaleY;
+
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        // Draw cropped region of the screen
+        ctx.drawImage(
+          video,
+          (rect.left - padding) * scaleX,
+          (rect.top - padding) * scaleY,
+          (rect.width + padding * 2) * scaleX,
+          (rect.height + padding * 2) * scaleY,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+      }
+
+      // Stop the stream
+      stream.getTracks().forEach((track) => track.stop());
+
+      // Download the image
+      const link = document.createElement("a");
+      link.download = `destroyed-tweet-${tweetId}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (err) {
+      console.error("Screenshot failed:", err);
+    }
   };
 
   return (
     <div
       ref={containerRef}
-      className={`fixed inset-0 ${currentWeapon.cursor ? "cursor-none" : "cursor-default"} transition-all duration-500 bg-cover bg-center`}
-      style={{ backgroundImage: `url(/bg.jpg)` }}
+      className={`fixed inset-0 ${currentWeapon.cursor ? "cursor-none" : "cursor-default"} transition-all duration-500 bg-cover bg-center bg-no-repeat`}
+      style={{ backgroundImage: "url('/bg.jpg')" }}
     >
       {/* Navigation */}
-      <nav className="absolute top-0 left-0 w-full px-6 pt-8 pb-4 z-50 flex justify-center items-center">
+      <nav className="absolute top-0 left-0 w-full px-6 pt-10 pb-4 z-50 flex justify-between items-start">
+        <div className="flex items-center gap-6">
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-2xl"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+            </svg>
+            <span className="font-bold">Reset</span>
+          </button>
+          {tweetId && !isDestroyed && (
+            <button
+              onClick={handleScreenshot}
+              className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-2xl"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+              </svg>
+              <span className="font-bold">Save</span>
+            </button>
+          )}
+        </div>
         <a href="/" className="hover:opacity-80">
           <img src="/x.png" alt="xrageroom" className="h-24" />
+        </a>
+        <a
+          href="/leaderboard"
+          className="flex items-center text-white/70 hover:text-white transition-colors text-2xl"
+        >
+          <span className="font-bold">Leaderboard</span>
         </a>
       </nav>
 
@@ -124,8 +301,39 @@ function TweetPageContent() {
 
       {/* Tomato splat effects */}
       {tomatoSplats.map((splat) => (
-        <TomatoSplat key={splat.id} x={splat.x} y={splat.y} />
+        <TomatoSplat
+          key={splat.id}
+          x={splat.x}
+          y={splat.y}
+          onComplete={() => play("/tomato.mp3")}
+        />
       ))}
+
+      {/* Flying letter effects (EU weapon) */}
+      {flyingLetters.map((letter) => (
+        <FlyingLetter
+          key={letter.id}
+          startX={letter.x}
+          startY={letter.y}
+          onComplete={() => setFlyingLetters((prev) => prev.filter((l) => l.id !== letter.id))}
+        />
+      ))}
+
+      {/* Flying book effects (Creative Act weapon) */}
+      {flyingBooks.map((book) => (
+        <FlyingBook
+          key={book.id}
+          startX={book.x}
+          startY={book.y}
+          onComplete={() => {
+            setFlyingBooks(prev => prev.filter(b => b.id !== book.id));
+            // Knock the tweet - alternate direction based on which side was hit
+            const hitFromLeft = book.x < window.innerWidth / 2;
+            setTweetTilt(prev => prev + (hitFromLeft ? -3 : 3) + (Math.random() - 0.5) * 2);
+          }}
+        />
+      ))}
+
 
       {/* Main content area */}
       <div
@@ -141,8 +349,14 @@ function TweetPageContent() {
         {/* Tweet display */}
         {tweetId && !isDestroyed && !isExploding && (
           <div
+            ref={tweetContainerRef}
             onMouseEnter={() => setIsHoveringTweet(true)}
             onMouseLeave={() => setIsHoveringTweet(false)}
+            style={{
+              transform: `rotate(${tweetTilt}deg) translateY(${fallOffset}px)`,
+              transition: isFalling ? "none" : "transform 0.3s ease-out",
+              transformOrigin: "center center",
+            }}
           >
             <TweetDisplay
               tweetId={tweetId}
@@ -175,7 +389,7 @@ function TweetPageContent() {
       <img
         src="/inventory.png"
         alt=""
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] pointer-events-none"
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[55%] pointer-events-none"
       />
 
       {/* Weapon hotbar */}

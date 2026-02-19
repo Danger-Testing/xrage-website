@@ -11,9 +11,12 @@
     "bot:dev": "tsx watch bot/index.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.97.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
+    "dripping-spray": "^1.0.4",
+    "dripping-spray-canvas": "^1.0.4",
     "gif.js": "^0.2.0",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.574.0",
@@ -21,6 +24,7 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-tweet": "^3.3.0",
     "tailwind-merge": "^3.5.0",
     "twitter-api-v2": "^1.17.2"
   },

@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 
 type TomatoSplatProps = {
   x: number;
   y: number;
+  onComplete?: () => void;
 };
 
-export function TomatoSplat({ x, y }: TomatoSplatProps) {
+export function TomatoSplat({ x, y, onComplete }: TomatoSplatProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const isPlayingRef = useRef(false);
+  const [showStain, setShowStain] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -53,7 +56,9 @@ export function TomatoSplat({ x, y }: TomatoSplatProps) {
 
     const handleEnded = () => {
       isActive = false;
-      // Keep last frame visible - don't call onComplete
+      // Show the stain image instead of keeping last video frame
+      setShowStain(true);
+      onComplete?.();
     };
 
     const startPlayback = async () => {
@@ -63,6 +68,23 @@ export function TomatoSplat({ x, y }: TomatoSplatProps) {
       try {
         await video.play();
         processFrame();
+
+        // Cut off video 4 seconds early
+        const cutoffTime = Math.max(0, video.duration - 4);
+        const checkTime = () => {
+          if (video.currentTime >= cutoffTime) {
+            video.pause();
+            handleEnded();
+          } else if (!video.paused && !video.ended) {
+            requestAnimationFrame(checkTime);
+          }
+        };
+        video.addEventListener("loadedmetadata", () => {
+          requestAnimationFrame(checkTime);
+        });
+        if (video.readyState >= 1) {
+          requestAnimationFrame(checkTime);
+        }
       } catch (err) {
         // Ignore AbortError from rapid play/pause
         if ((err as Error).name !== "AbortError") {
@@ -102,12 +124,22 @@ export function TomatoSplat({ x, y }: TomatoSplatProps) {
         width={500}
         height={500}
       />
-      <canvas
-        ref={canvasRef}
-        width={500}
-        height={500}
-        className="w-[500px] h-[500px]"
-      />
+      {showStain ? (
+        <Image
+          src="/stain.png"
+          alt="Tomato stain"
+          width={700}
+          height={700}
+          className="w-[700px] h-[700px] object-contain"
+        />
+      ) : (
+        <canvas
+          ref={canvasRef}
+          width={500}
+          height={500}
+          className="w-[500px] h-[500px]"
+        />
+      )}
     </div>
   );
 }
