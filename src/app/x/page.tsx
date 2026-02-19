@@ -152,6 +152,8 @@ function TweetPageContent() {
     setIsFalling(false);
     setFallOffset(0);
     hasSavedDestruction.current = false;
+    // Update browser URL without navigation
+    window.history.replaceState({}, "", `/x?url=${encodeURIComponent(url)}`);
   };
 
   const handleVolcanoDestroy = () => {
