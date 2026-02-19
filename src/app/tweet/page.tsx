@@ -185,72 +185,6 @@ function TweetPageContent() {
     hasSavedDestruction.current = false;
   };
 
-  const handleScreenshot = async () => {
-    if (!tweetContainerRef.current) return;
-
-    try {
-      // Get the tweet container bounds
-      const rect = tweetContainerRef.current.getBoundingClientRect();
-
-      // Request screen capture (preferCurrentTab for Chrome)
-      const stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        // @ts-expect-error - preferCurrentTab is Chrome-specific
-        preferCurrentTab: true,
-      });
-
-      // Create video element to capture frame
-      const video = document.createElement("video");
-      video.srcObject = stream;
-      await video.play();
-
-      // Wait for video to be ready
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // Get the actual video dimensions
-      const videoWidth = video.videoWidth;
-      const videoHeight = video.videoHeight;
-
-      // Calculate scale between video and window
-      const scaleX = videoWidth / window.innerWidth;
-      const scaleY = videoHeight / window.innerHeight;
-
-      // Create canvas for the cropped region
-      const canvas = document.createElement("canvas");
-      const padding = 20;
-
-      canvas.width = (rect.width + padding * 2) * scaleX;
-      canvas.height = (rect.height + padding * 2) * scaleY;
-
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        // Draw cropped region of the screen
-        ctx.drawImage(
-          video,
-          (rect.left - padding) * scaleX,
-          (rect.top - padding) * scaleY,
-          (rect.width + padding * 2) * scaleX,
-          (rect.height + padding * 2) * scaleY,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
-      }
-
-      // Stop the stream
-      stream.getTracks().forEach((track) => track.stop());
-
-      // Download the image
-      const link = document.createElement("a");
-      link.download = `destroyed-tweet-${tweetId}.png`;
-      link.href = canvas.toDataURL("image/png");
-      link.click();
-    } catch (err) {
-      console.error("Screenshot failed:", err);
-    }
-  };
-
   return (
     <div
       ref={containerRef}
@@ -269,17 +203,6 @@ function TweetPageContent() {
             </svg>
             <span className="font-bold">Reset</span>
           </button>
-          {tweetId && !isDestroyed && (
-            <button
-              onClick={handleScreenshot}
-              className="flex items-center gap-3 text-white/70 hover:text-white transition-colors text-2xl"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-              </svg>
-              <span className="font-bold">Save</span>
-            </button>
-          )}
         </div>
         <a href="/" className="hover:opacity-80">
           <img src="/x.png" alt="xrageroom" className="h-24" />

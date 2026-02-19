@@ -109,8 +109,8 @@ export default function LeaderboardPage() {
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center"
-      style={{ backgroundImage: "url(/bg.jpg)" }}
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      style={{ backgroundImage: "url('/bg.jpg')" }}
     >
       {/* Navigation */}
       <nav className="w-full px-6 pt-8 pb-4 flex justify-center items-center">
