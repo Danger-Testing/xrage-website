@@ -16,6 +16,7 @@ import {
   LocationSelector,
   WeaponCursor,
   RecordButton,
+  ExplosionEffect,
 } from "@/components";
 
 function TweetPageContent() {
@@ -33,13 +34,14 @@ function TweetPageContent() {
   // Mouse state
   const [isHolding, setIsHolding] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isHoveringTweet, setIsHoveringTweet] = useState(false);
 
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Custom hooks
   const { weapons, currentWeapon, selectedIndex, selectWeapon } = useWeapon();
-  const { burnLevel, isDestroyed, destroyedByWeapon, applyDamage, stopDamage, destroyByVolcano, reset, undoDestroy } = useDamage();
+  const { burnLevel, isDestroyed, isExploding, destroyedByWeapon, applyDamage, stopDamage, destroyByVolcano, completeExplosion, reset, undoDestroy } = useDamage();
   const { isRecording, isProcessing, toggleRecording } = useRecording(containerRef);
   const { play, stop } = useAudio();
 
@@ -90,50 +92,55 @@ function TweetPageContent() {
   return (
     <div
       ref={containerRef}
-      className={`fixed inset-0 ${currentLocation.bgClass} ${currentWeapon.cursor ? "cursor-none" : "cursor-default"} transition-all duration-500`}
-      style={currentLocation.bgImage ? { backgroundImage: `url(${currentLocation.bgImage})` } : {}}
+      className={`fixed inset-0 ${currentWeapon.cursor ? "cursor-none" : "cursor-default"} transition-all duration-500 bg-cover bg-center`}
+      style={{ backgroundImage: `url(/bg.jpg)` }}
     >
       {/* Navigation */}
-      <nav className="w-full px-6 py-4 relative z-50 flex justify-between items-center">
-        <a href="/" className="text-white text-xl font-bold hover:opacity-80 drop-shadow-lg">
-          xrageroom
+      <nav className="absolute top-0 left-0 w-full px-6 pt-8 pb-4 z-50 flex justify-center items-center">
+        <a href="/" className="hover:opacity-80">
+          <img src="/x.png" alt="xrageroom" className="h-24" />
         </a>
-        <LocationSelector
-          locations={LOCATIONS}
-          selectedIndex={selectedLocation}
-          onSelect={setSelectedLocation}
-        />
       </nav>
+
+      {/* Custom weapon cursor */}
+      <WeaponCursor
+        weapon={currentWeapon}
+        mousePos={mousePos}
+        isActive={isHolding}
+      />
 
       {/* Main content area */}
       <div
-        className="flex items-center justify-center"
-        style={{ height: "calc(100vh - 60px)" }}
+        className="flex items-center justify-center h-full"
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
       >
-        {/* Custom weapon cursor */}
-        <WeaponCursor
-          weapon={currentWeapon}
-          mousePos={mousePos}
-          isActive={isHolding}
-        />
-
         {/* Input form when no tweet */}
         {!tweetId && !isDestroyed && (
           <TweetInput initialUrl={urlParam} onSubmit={handleTweetSubmit} />
         )}
 
         {/* Tweet display */}
-        {tweetId && !isDestroyed && (
-          <TweetDisplay
-            tweetId={tweetId}
-            weapon={currentWeapon}
-            location={currentLocation}
-            burnLevel={burnLevel}
-            isHolding={isHolding}
-            onDestroy={handleVolcanoDestroy}
-          />
+        {tweetId && !isDestroyed && !isExploding && (
+          <div
+            onMouseEnter={() => setIsHoveringTweet(true)}
+            onMouseLeave={() => setIsHoveringTweet(false)}
+          >
+            <TweetDisplay
+              tweetId={tweetId}
+              weapon={currentWeapon}
+              location={currentLocation}
+              burnLevel={burnLevel}
+              isHolding={isHolding}
+              isHovering={isHoveringTweet}
+              onDestroy={handleVolcanoDestroy}
+            />
+          </div>
+        )}
+
+        {/* Explosion effect */}
+        {isExploding && (
+          <ExplosionEffect onComplete={completeExplosion} />
         )}
 
         {/* Destroyed view */}
@@ -145,6 +152,13 @@ function TweetPageContent() {
           />
         )}
       </div>
+
+      {/* Inventory background */}
+      <img
+        src="/inventory.png"
+        alt=""
+        className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[60%] pointer-events-none"
+      />
 
       {/* Weapon hotbar */}
       <WeaponSelector

@@ -18,7 +18,9 @@ export function DestroyedView({ weapon, onUndo, onNewTweet }: DestroyedViewProps
         <img
           src={weapon.destroy.image}
           alt="Destroyed"
-          className="max-w-[400px] mx-auto"
+          className="max-w-[400px] mx-auto select-none pointer-events-none"
+          draggable={false}
+          onContextMenu={(e) => e.preventDefault()}
         />
       ) : (
         <>
@@ -34,7 +36,8 @@ export function DestroyedView({ weapon, onUndo, onNewTweet }: DestroyedViewProps
                 e.stopPropagation();
                 onUndo();
               }}
-              className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg cursor-pointer border border-white/30"
+              aria-label="Undo destruction"
+              className="px-6 py-4 bg-white/20 hover:bg-white/30 text-white cursor-pointer border border-white/30 select-none focus:outline-none focus:ring-2 focus:ring-white/40"
             >
               Undo destruction
             </button>
@@ -43,7 +46,8 @@ export function DestroyedView({ weapon, onUndo, onNewTweet }: DestroyedViewProps
                 e.stopPropagation();
                 onNewTweet();
               }}
-              className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg cursor-pointer border border-white/30"
+              aria-label="Load a new tweet"
+              className="px-6 py-4 bg-white/20 hover:bg-white/30 text-white cursor-pointer border border-white/30 select-none focus:outline-none focus:ring-2 focus:ring-white/40"
             >
               New tweet
             </button>

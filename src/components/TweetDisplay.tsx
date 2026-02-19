@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Weapon } from "@/config/weapons";
 import { Location } from "@/config/locations";
 import { DamageOverlay } from "./DamageOverlay";
@@ -11,6 +11,7 @@ type TweetDisplayProps = {
   location: Location;
   burnLevel: number;
   isHolding: boolean;
+  isHovering?: boolean;
   onDestroy: () => void;
 };
 
@@ -20,14 +21,40 @@ export function TweetDisplay({
   location,
   burnLevel,
   isHolding,
+  isHovering = false,
   onDestroy,
 }: TweetDisplayProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [tweetPos, setTweetPos] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [iframeHeight, setIframeHeight] = useState(250);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const isHellMode = location.id === "hell";
+
+  // Listen for Twitter embed resize messages
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      // Twitter embed sends height via postMessage
+      if (event.origin === "https://platform.twitter.com") {
+        try {
+          const data = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+          if (data["twttr.embed"] && data["twttr.embed"].method === "twttr.private.resize") {
+            const params = data["twttr.embed"].params;
+            if (params && params[0] && params[0].height) {
+              setIframeHeight(params[0].height);
+            }
+          }
+        } catch {
+          // Ignore non-JSON messages
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
 
   const handleTweetMouseDown = useCallback((e: React.MouseEvent) => {
     if (isHellMode) {
@@ -64,7 +91,7 @@ export function TweetDisplay({
         isHolding && weapon.effect.activeClass ? weapon.effect.activeClass : ""
       }`}
       style={{
-        height: 240,
+        height: iframeHeight,
         transform: `translate(${tweetPos.x}px, ${tweetPos.y}px) ${
           isDragging ? "scale(0.95) rotate(3deg)" : ""
         } ${isHolding && weapon.effect.activeTransform ? weapon.effect.activeTransform : ""}`,
@@ -82,9 +109,10 @@ export function TweetDisplay({
       )}
 
       <iframe
-        src={`https://platform.twitter.com/embed/Tweet.html?id=${tweetId}`}
-        width="400"
-        height="300"
+        ref={iframeRef}
+        src={`https://platform.twitter.com/embed/Tweet.html?id=${tweetId}&theme=light`}
+        width="550"
+        height={iframeHeight}
         className="border-0"
         onLoad={() => setIsLoading(false)}
       />
@@ -93,6 +121,15 @@ export function TweetDisplay({
       <div className="absolute inset-0" />
 
       <DamageOverlay weapon={weapon} burnLevel={burnLevel} />
+
+      {/* Skid marks on hover for cybertruck */}
+      {isHovering && weapon.id === "cybertruck" && (
+        <img
+          src="/skid.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        />
+      )}
 
       {/* Hell mode indicator */}
       {isHellMode && (

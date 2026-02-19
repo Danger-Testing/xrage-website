@@ -6,12 +6,14 @@ import { Weapon, createVolcanoWeapon } from "@/config/weapons";
 export type DamageState = {
   burnLevel: number;
   isDestroyed: boolean;
+  isExploding: boolean;
   destroyedByWeapon: Weapon | null;
 };
 
 export function useDamage() {
   const [burnLevel, setBurnLevel] = useState(0);
   const [isDestroyed, setIsDestroyed] = useState(false);
+  const [isExploding, setIsExploding] = useState(false);
   const [destroyedByWeapon, setDestroyedByWeapon] = useState<Weapon | null>(null);
   const burnInterval = useRef<NodeJS.Timeout | null>(null);
 
@@ -34,11 +36,21 @@ export function useDamage() {
         const newLevel = Math.min(prev + weapon.damage.rate, 100);
         if (newLevel >= 100 && prev < 100) {
           setDestroyedByWeapon(weapon);
-          setIsDestroyed(true);
+          // If grenade, trigger explosion first
+          if (weapon.id === "grenade") {
+            setIsExploding(true);
+          } else {
+            setIsDestroyed(true);
+          }
         }
         return newLevel;
       });
     }
+  }, []);
+
+  const completeExplosion = useCallback(() => {
+    setIsExploding(false);
+    setIsDestroyed(true);
   }, []);
 
   const stopDamage = useCallback(() => {
@@ -57,21 +69,25 @@ export function useDamage() {
     stopDamage();
     setBurnLevel(0);
     setIsDestroyed(false);
+    setIsExploding(false);
     setDestroyedByWeapon(null);
   }, [stopDamage]);
 
   const undoDestroy = useCallback(() => {
     setIsDestroyed(false);
+    setIsExploding(false);
     setDestroyedByWeapon(null);
   }, []);
 
   return {
     burnLevel,
     isDestroyed,
+    isExploding,
     destroyedByWeapon,
     applyDamage,
     stopDamage,
     destroyByVolcano,
+    completeExplosion,
     reset,
     undoDestroy,
   };

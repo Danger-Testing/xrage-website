@@ -22,7 +22,45 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Selection styling */
+::selection {
+  background: rgba(255, 255, 255, 0.3);
+  color: inherit;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Hide hover states on touch devices */
+@media (hover: none) {
+  .hover\:bg-white\/30:hover {
+    background-color: inherit;
+  }
+  .hover\:bg-white\/20:hover {
+    background-color: inherit;
+  }
+  .hover\:bg-gray-700:hover {
+    background-color: inherit;
+  }
+  .hover\:bg-red-700:hover {
+    background-color: inherit;
+  }
+  .hover\:opacity-80:hover {
+    opacity: inherit;
+  }
 }
 
 /* Weapon effect animations */

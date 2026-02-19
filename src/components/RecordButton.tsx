@@ -16,8 +16,8 @@ export function RecordButton({ isRecording, isProcessing, onToggle }: RecordButt
       disabled={isProcessing}
       aria-label={isProcessing ? "Processing GIF" : isRecording ? "Stop recording" : "Start recording"}
       className={`
-        fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg cursor-pointer
-        flex items-center gap-2 transition-all duration-200
+        fixed bottom-6 right-6 z-50 w-20 h-20 cursor-pointer
+        flex flex-col items-center justify-center gap-2 transition-all duration-200
         ${isProcessing
           ? "bg-gray-600 text-gray-300 cursor-wait"
           : isRecording
@@ -28,17 +28,17 @@ export function RecordButton({ isRecording, isProcessing, onToggle }: RecordButt
     >
       {isProcessing ? (
         <>
-          <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           Processing...
         </>
       ) : isRecording ? (
         <>
-          <span className="w-3 h-3 bg-white rounded-full" />
+          <span className="w-4 h-4 bg-white" />
           Stop
         </>
       ) : (
         <>
-          <span className="w-3 h-3 bg-red-500 rounded-full" />
+          <span className="w-4 h-4 bg-red-500" />
           Record
         </>
       )}

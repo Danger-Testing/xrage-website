@@ -12,7 +12,7 @@ export function DamageOverlay({ weapon, burnLevel }: DamageOverlayProps) {
     <>
       {/* Weapon effect overlay */}
       <div
-        className="absolute inset-0 pointer-events-none transition-colors"
+        className="absolute inset-0 pointer-events-none transition-colors rounded-xl"
         style={{ backgroundColor: weapon.effect.overlayColor(burnLevel) }}
       />
 

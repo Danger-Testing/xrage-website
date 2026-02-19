@@ -22,6 +22,7 @@ export function LocationSelector({ locations, selectedIndex, onSelect }: Locatio
           className={`
             w-10 h-10 flex items-center justify-center text-lg rounded-lg
             transition-all duration-200 cursor-pointer
+            focus:outline-none focus:ring-2 focus:ring-white/60
             ${selectedIndex === index
               ? "bg-white/30 border-2 border-white scale-110"
               : "bg-black/40 border border-white/30 hover:bg-white/20"
