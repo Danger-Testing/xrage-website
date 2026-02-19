@@ -56,13 +56,11 @@ export const WEAPONS: Weapon[] = [
     name: "Tomato",
     icon: "🍅",
     cursor: { idle: "/tomato.png", active: "/tomato.png", size: 150, offset: { x: 75, y: 75 } },
-    damage: { rate: 10, type: "click" },
+    damage: { rate: 0, type: "click" },
     sound: { active: "/splat.mp3" },
     effect: {
-      filter: (level) => `saturate(${1 + level * 0.01}) hue-rotate(${-level * 0.5}deg)`,
-      overlayColor: (level) => `rgba(255, 0, 0, ${level / 250})`,
-      activeTransform: "scale(0.95)",
-      activeClass: "animate-smash",
+      filter: () => "",
+      overlayColor: () => "transparent",
     },
     destroy: { emoji: "🍅", message: "Splattered!", bgClass: "bg-gradient-to-t from-red-900 to-transparent" },
   },
@@ -98,21 +96,21 @@ export const WEAPONS: Weapon[] = [
     },
     destroy: { emoji: "💥", message: "KABOOM!", bgClass: "bg-gradient-to-t from-orange-900 via-red-700 to-transparent" },
   },
-  // 3: Cybertruck
+  // 3: Sword
   {
-    id: "cybertruck",
-    name: "Cybertruck",
-    icon: "🚗",
-    cursor: { idle: "/cybertruck.webp", active: "/cybertruck.webp", size: 200, offset: { x: 100, y: 100 } },
+    id: "sword",
+    name: "Sword",
+    icon: "⚔️",
+    cursor: { idle: "/sword.png", active: "/sword.png", size: 200, offset: { x: 100, y: 100 } },
     damage: { rate: 15, type: "click" },
     sound: { active: "/slash.mp3" },
     effect: {
-      filter: (level) => `grayscale(${level * 0.5}%)`,
-      overlayColor: (level) => `rgba(100, 100, 100, ${level / 300})`,
-      activeTransform: "scale(0.95) rotate(-5deg)",
+      filter: (level) => `contrast(${1 + level * 0.005})`,
+      overlayColor: (level) => `rgba(200, 0, 0, ${level / 400})`,
+      activeTransform: "scale(0.95) rotate(-15deg)",
       activeClass: "animate-smash",
     },
-    destroy: { emoji: "🚗", message: "Run over!", bgClass: "bg-gradient-to-t from-gray-900 to-transparent" },
+    destroy: { emoji: "⚔️", message: "Sliced!", bgClass: "bg-gradient-to-t from-red-900 to-transparent" },
   },
   // 4: Flamethrower
   {

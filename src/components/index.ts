@@ -7,3 +7,4 @@ export { DestroyedView } from "./DestroyedView";
 export { TweetInput } from "./TweetInput";
 export { WeaponCursor } from "./WeaponCursor";
 export { ExplosionEffect } from "./ExplosionEffect";
+export { TomatoSplat } from "./TomatoSplat";

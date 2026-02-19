@@ -6,17 +6,15 @@ import { useState, useRef, useEffect, Suspense } from "react";
 import { LOCATIONS } from "@/config/locations";
 import { useWeapon } from "@/hooks/useWeapon";
 import { useDamage } from "@/hooks/useDamage";
-import { useRecording } from "@/hooks/useRecording";
 import { useAudio } from "@/hooks/useAudio";
 import {
   TweetInput,
   TweetDisplay,
   DestroyedView,
   WeaponSelector,
-  LocationSelector,
   WeaponCursor,
-  RecordButton,
   ExplosionEffect,
+  TomatoSplat,
 } from "@/components";
 
 function TweetPageContent() {
@@ -36,13 +34,19 @@ function TweetPageContent() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const [isHoveringTweet, setIsHoveringTweet] = useState(false);
 
+  // Tomato splat effects
+  const [tomatoSplats, setTomatoSplats] = useState<{ id: number; x: number; y: number }[]>([]);
+  const splatIdRef = useRef(0);
+
+  // Tweet loading state
+  const [isTweetLoaded, setIsTweetLoaded] = useState(false);
+
   // Refs
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Custom hooks
   const { weapons, currentWeapon, selectedIndex, selectWeapon } = useWeapon();
   const { burnLevel, isDestroyed, isExploding, destroyedByWeapon, applyDamage, stopDamage, destroyByVolcano, completeExplosion, reset, undoDestroy } = useDamage();
-  const { isRecording, isProcessing, toggleRecording } = useRecording(containerRef);
   const { play, stop } = useAudio();
 
   // Track mouse position
@@ -61,6 +65,12 @@ function TweetPageContent() {
       play(currentWeapon.sound.active);
     }
 
+    // Add tomato splat effect when using tomato weapon (anywhere on screen)
+    if (currentWeapon.id === "tomato") {
+      const newSplat = { id: splatIdRef.current++, x: mousePos.x, y: mousePos.y };
+      setTomatoSplats((prev) => [...prev, newSplat]);
+    }
+
     applyDamage(currentWeapon);
   };
 
@@ -72,6 +82,7 @@ function TweetPageContent() {
 
   const handleTweetSubmit = (url: string) => {
     setSubmittedUrl(url);
+    setIsTweetLoaded(false);
     reset();
   };
 
@@ -86,7 +97,9 @@ function TweetPageContent() {
 
   const handleNewTweet = () => {
     setSubmittedUrl("");
+    setIsTweetLoaded(false);
     reset();
+    setTomatoSplats([]); // Clear splats when loading new tweet
   };
 
   return (
@@ -108,6 +121,11 @@ function TweetPageContent() {
         mousePos={mousePos}
         isActive={isHolding}
       />
+
+      {/* Tomato splat effects */}
+      {tomatoSplats.map((splat) => (
+        <TomatoSplat key={splat.id} x={splat.x} y={splat.y} />
+      ))}
 
       {/* Main content area */}
       <div
@@ -132,8 +150,8 @@ function TweetPageContent() {
               location={currentLocation}
               burnLevel={burnLevel}
               isHolding={isHolding}
-              isHovering={isHoveringTweet}
               onDestroy={handleVolcanoDestroy}
+              onLoad={() => setIsTweetLoaded(true)}
             />
           </div>
         )}
@@ -162,17 +180,11 @@ function TweetPageContent() {
 
       {/* Weapon hotbar */}
       <WeaponSelector
-        weapons={weapons}
         selectedIndex={selectedIndex}
         onSelect={selectWeapon}
+        disabled={!isTweetLoaded}
       />
 
-      {/* Record button */}
-      <RecordButton
-        isRecording={isRecording}
-        isProcessing={isProcessing}
-        onToggle={toggleRecording}
-      />
     </div>
   );
 }

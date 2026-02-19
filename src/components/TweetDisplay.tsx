@@ -11,8 +11,8 @@ type TweetDisplayProps = {
   location: Location;
   burnLevel: number;
   isHolding: boolean;
-  isHovering?: boolean;
   onDestroy: () => void;
+  onLoad?: () => void;
 };
 
 export function TweetDisplay({
@@ -21,8 +21,8 @@ export function TweetDisplay({
   location,
   burnLevel,
   isHolding,
-  isHovering = false,
   onDestroy,
+  onLoad,
 }: TweetDisplayProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [tweetPos, setTweetPos] = useState({ x: 0, y: 0 });
@@ -114,7 +114,10 @@ export function TweetDisplay({
         width="550"
         height={iframeHeight}
         className="border-0"
-        onLoad={() => setIsLoading(false)}
+        onLoad={() => {
+          setIsLoading(false);
+          onLoad?.();
+        }}
       />
 
       {/* Transparent overlay to block hover */}
@@ -122,14 +125,6 @@ export function TweetDisplay({
 
       <DamageOverlay weapon={weapon} burnLevel={burnLevel} />
 
-      {/* Skid marks on hover for cybertruck */}
-      {isHovering && weapon.id === "cybertruck" && (
-        <img
-          src="/skid.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-        />
-      )}
 
       {/* Hell mode indicator */}
       {isHellMode && (
