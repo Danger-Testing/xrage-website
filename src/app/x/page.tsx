@@ -26,7 +26,7 @@ function TweetPageContent() {
 
   // Tweet URL state
   const [submittedUrl, setSubmittedUrl] = useState(urlParam);
-  const tweetId = submittedUrl.match(/status\/(\d+)/)?.[1] || "";
+  const tweetId = submittedUrl.match(/status\/(\d+)/)?.[1] || (/^\d+$/.test(submittedUrl) ? submittedUrl : "");
 
   // Location state
   const [selectedLocation, setSelectedLocation] = useState(0);
@@ -207,12 +207,8 @@ function TweetPageContent() {
         <a href="/" className="hover:opacity-80">
           <img src="/x.png" alt="xrageroom" className="h-24" />
         </a>
-        <a
-          href="/leaderboard"
-          className="flex items-center text-white/70 hover:text-white transition-colors text-2xl"
-        >
-          <span className="font-bold">Leaderboard</span>
-        </a>
+{/* Leaderboard hidden for now */}
+        <div className="w-[120px]" />
       </nav>
 
       {/* Custom weapon cursor */}

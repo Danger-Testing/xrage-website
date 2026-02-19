@@ -31,7 +31,7 @@ export function WeaponSelector({ selectedIndex, onSelect, disabled = false }: We
             className={`
               relative flex items-center justify-center
               focus:outline-none transition-opacity
-              ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+              ${disabled ? "cursor-not-allowed" : "cursor-pointer"}
               ${index === 0 ? "w-32 h-32 pb-4" : index === 1 ? "w-[152px] h-[152px]" : index === 3 ? "w-36 h-36 mb-2" : "w-40 h-40"}
             `}
           >
