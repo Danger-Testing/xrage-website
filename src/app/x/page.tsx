@@ -313,6 +313,10 @@ function TweetPageContent() {
           <a href="/" className="absolute left-1/2 -translate-x-1/2 hover:opacity-80">
             <img src="/x.png" alt="xrageroom" className="h-24" />
           </a>
+          {/* Turtle in top right */}
+          <a href="https://dangertesting.com" target="_blank" rel="noopener noreferrer" className="absolute right-6 top-16 opacity-70 hover:opacity-100">
+            <img src="/turtle.svg" alt="Danger Testing" className="h-16" />
+          </a>
           {/* Reset button on left */}
           {tweetId && (
             <button
