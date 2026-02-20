@@ -18,6 +18,7 @@ import {
   FlyingBook,
   CrackEffect,
   SprayCanvas,
+  EmailModal,
 } from "@/components";
 import { saveDestroyedTweet } from "@/lib/supabase";
 
@@ -209,6 +210,13 @@ function TweetPageContent() {
   // Drag explosion state
   const [isExplodingDrag, setIsExplodingDrag] = useState(false);
 
+  // Email modal state
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const hasShownEmailModal = useRef(false);
+
+  // Spray canvas reset key
+  const [sprayResetKey, setSprayResetKey] = useState(0);
+
   // Handle drag explosion completion
   const handleDragExplosionComplete = () => {
     setIsExplodingDrag(false);
@@ -224,6 +232,7 @@ function TweetPageContent() {
     }
   }, [isDestroyed, tweetId, submittedUrl, destroyedByWeapon]);
 
+  
   // Shared pointer down logic (works for both mouse and touch)
   const handlePointerDown = (clientX: number, clientY: number) => {
     // Update position immediately for touch
@@ -330,10 +339,11 @@ function TweetPageContent() {
     setTweetTilt(0);
     setIsFalling(false);
     setFallOffset(0);
+    setShowEmailModal(false);
     hasSavedDestruction.current = false;
   };
 
-  const handleReset = () => {
+  const doReset = () => {
     reset();
     setTomatoSplats([]);
     setFlyingLetters([]);
@@ -345,7 +355,16 @@ function TweetPageContent() {
     setTweetDragPos({ x: 0, y: 0 });
     setBlackout(false);
     setIsExplodingDrag(false);
+    setSprayResetKey(k => k + 1);
     hasSavedDestruction.current = false;
+  };
+
+  const handleReset = () => {
+    doReset();
+    if (!hasShownEmailModal.current) {
+      hasShownEmailModal.current = true;
+      setShowEmailModal(true);
+    }
   };
 
   return (
@@ -446,7 +465,7 @@ function TweetPageContent() {
       ))}
 
       {/* Full screen spray canvas - always mounted to persist paint */}
-      <SprayCanvas isActive={isHolding && currentWeapon.id === "spray"} mousePos={mousePos} />
+      <SprayCanvas isActive={isHolding && currentWeapon.id === "spray"} mousePos={mousePos} resetKey={sprayResetKey} />
 
       {/* Main content area */}
       <div className="flex items-center justify-center h-full">
@@ -614,6 +633,13 @@ function TweetPageContent() {
           }}
         />
       )}
+
+      {/* Email subscription modal */}
+      <EmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onComplete={() => {}}
+      />
 
     </div>
   );

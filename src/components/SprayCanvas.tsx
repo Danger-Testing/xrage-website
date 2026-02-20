@@ -9,9 +9,10 @@ import { Drawer } from "dripping-spray-canvas";
 type SprayCanvasProps = {
   isActive: boolean;
   mousePos: { x: number; y: number };
+  resetKey?: number;
 };
 
-export function SprayCanvas({ isActive, mousePos }: SprayCanvasProps) {
+export function SprayCanvas({ isActive, mousePos, resetKey }: SprayCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sprayRef = useRef<InstanceType<typeof Spray> | null>(null);
   const drawerRef = useRef<InstanceType<typeof Drawer> | null>(null);
@@ -27,6 +28,16 @@ export function SprayCanvas({ isActive, mousePos }: SprayCanvasProps) {
   useEffect(() => {
     isActiveRef.current = isActive;
   }, [isActive]);
+
+  // Clear canvas when resetKey changes
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || resetKey === undefined) return;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }, [resetKey]);
 
   // Initialize canvas, drawer, and spray
   useEffect(() => {

@@ -12,3 +12,4 @@ export { FlyingLetter } from "./FlyingLetter";
 export { FlyingBook } from "./FlyingBook";
 export { CrackEffect } from "./CrackEffect";
 export { SprayCanvas } from "./SprayCanvas";
+export { EmailModal } from "./EmailModal";
