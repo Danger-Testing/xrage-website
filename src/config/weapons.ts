@@ -99,7 +99,7 @@ export const WEAPONS: Weapon[] = [
     name: "Spray Can",
     icon: "🎨",
     cursor: { idle: "/spraypaint.png", active: "/spraypaint.png", size: 200, offset: { x: 100, y: 100 } },
-    damage: { rate: 1.5, type: "hold" },
+    damage: { rate: 0, type: "hold" },
     sound: { active: "/spray.mp3" },
     effect: {
       filter: () => "",

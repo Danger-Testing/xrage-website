@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "xrageroom - rage in private",
-  description:
-    "Let out your frustration! Load any tweet and destroy it with flamethrowers, ban hammers, nukes, and more. Record your rage as a GIF.",
+  title: "xrageroom - destroy a tweet",
+  description: "destroy a tweet",
   keywords: [
     "twitter",
     "rage",
@@ -15,16 +14,24 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "xrageroom" }],
   openGraph: {
-    title: "xrageroom - rage in private",
-    description:
-      "Let out your frustration! Load any tweet and destroy it with flamethrowers, ban hammers, nukes, and more.",
+    title: "xrageroom - destroy a tweet",
+    description: "destroy a tweet",
     type: "website",
     siteName: "xrageroom",
+    images: [
+      {
+        url: "/og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "xrageroom - destroy a tweet",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "xrageroom - rage in private",
-    description: "Let out your frustration! rage in private.",
+    title: "xrageroom - destroy a tweet",
+    description: "destroy a tweet",
+    images: ["/og.jpg"],
   },
 };
 
