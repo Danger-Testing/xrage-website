@@ -64,22 +64,6 @@ export const WEAPONS: Weapon[] = [
     },
     destroy: { emoji: "🍅", message: "Splattered!", bgClass: "bg-gradient-to-t from-red-900 to-transparent" },
   },
-  // 1: Sledgehammer
-  {
-    id: "hammer",
-    name: "Sledgehammer",
-    icon: "🔨",
-    cursor: { idle: "/hammer.png", active: "/hammer.png", size: 350, offset: { x: 175, y: 175 } },
-    damage: { rate: 8, type: "click" },
-    sound: { active: "/pow.mp3" },
-    effect: {
-      filter: () => "",
-      overlayColor: () => "transparent",
-      activeTransform: "scale(0.9) translateX(-10px)",
-      activeClass: "animate-smash",
-    },
-    destroy: { emoji: "🔨", message: "Smashed!", bgClass: "bg-gradient-to-t from-gray-900 via-slate-800 to-transparent" },
-  },
   // 2: Creative Act - flying book effect
   {
     id: "grenade",
@@ -93,7 +77,37 @@ export const WEAPONS: Weapon[] = [
     },
     destroy: { emoji: "📕", message: "Creative Act!", bgClass: "bg-gradient-to-t from-red-900 to-transparent" },
   },
-  // 4: Flamethrower
+  // 3: Sledgehammer
+  {
+    id: "hammer",
+    name: "Sledgehammer",
+    icon: "🔨",
+    cursor: { idle: "/hammer.png", active: "/hammer.png", size: 350, offset: { x: 175, y: 175 } },
+    damage: { rate: 0, type: "click" },
+    sound: { active: "/pow.mp3" },
+    effect: {
+      filter: () => "",
+      overlayColor: () => "transparent",
+      activeTransform: "scale(0.9) translateX(-10px)",
+      activeClass: "animate-smash",
+    },
+    destroy: { emoji: "🔨", message: "Smashed!", bgClass: "bg-gradient-to-t from-gray-900 via-slate-800 to-transparent" },
+  },
+  // 4: Spray Can
+  {
+    id: "spray",
+    name: "Spray Can",
+    icon: "🎨",
+    cursor: { idle: "/spraypaint.png", active: "/spraypaint.png", size: 200, offset: { x: 100, y: 100 } },
+    damage: { rate: 1.5, type: "hold" },
+    sound: { active: "/spray.mp3" },
+    effect: {
+      filter: () => "",
+      overlayColor: () => "transparent",
+    },
+    destroy: { emoji: "🎨", message: "Tagged!", bgClass: "bg-gradient-to-t from-red-900 to-transparent" },
+  },
+  // 5: Flamethrower
   {
     id: "flamethrower",
     name: "Flamethrower",

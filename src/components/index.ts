@@ -10,3 +10,5 @@ export { ExplosionEffect } from "./ExplosionEffect";
 export { TomatoSplat } from "./TomatoSplat";
 export { FlyingLetter } from "./FlyingLetter";
 export { FlyingBook } from "./FlyingBook";
+export { CrackEffect } from "./CrackEffect";
+export { SprayCanvas } from "./SprayCanvas";

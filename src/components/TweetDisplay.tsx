@@ -30,6 +30,7 @@ export function TweetDisplay({
   const [isLoading, setIsLoading] = useState(true);
   const [iframeHeight, setIframeHeight] = useState(250);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isHellMode = location.id === "hell";
 
@@ -83,8 +84,14 @@ export function TweetDisplay({
     }
   }, [isDragging, isHellMode, tweetPos, onDestroy]);
 
+  // Always apply burn effect if there's damage, regardless of current weapon
+  const burnFilter = burnLevel > 0
+    ? `brightness(${1 - burnLevel * 0.006}) contrast(${1 + burnLevel * 0.004})`
+    : "";
+
   return (
     <div
+      ref={containerRef}
       className={`relative overflow-hidden transition-all duration-100 ${
         isHellMode ? "cursor-grab active:cursor-grabbing" : ""
       } ${isDragging ? "scale-95 rotate-3" : ""} ${
@@ -95,7 +102,7 @@ export function TweetDisplay({
         transform: `translate(${tweetPos.x}px, ${tweetPos.y}px) ${
           isDragging ? "scale(0.95) rotate(3deg)" : ""
         } ${isHolding && weapon.effect.activeTransform ? weapon.effect.activeTransform : ""}`,
-        filter: weapon.effect.filter(burnLevel),
+        filter: burnFilter,
       }}
       onMouseDown={handleTweetMouseDown}
       onMouseMove={handleTweetMouseMove}
@@ -113,7 +120,7 @@ export function TweetDisplay({
         src={`https://platform.twitter.com/embed/Tweet.html?id=${tweetId}&theme=light`}
         width="550"
         height={iframeHeight}
-        className="border-0 rounded-xl"
+        className="border-0 rounded-xl max-w-[90vw] sm:max-w-[550px] scale-[0.85] sm:scale-100 origin-top bg-white"
         onLoad={() => {
           setIsLoading(false);
           onLoad?.();

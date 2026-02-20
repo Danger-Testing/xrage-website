@@ -8,12 +8,17 @@ type DamageOverlayProps = {
 };
 
 export function DamageOverlay({ weapon, burnLevel }: DamageOverlayProps) {
+  // Always show burn overlay if there's damage, regardless of current weapon
+  const burnOverlay = burnLevel > 0
+    ? `rgba(0, 0, 0, ${Math.min(burnLevel / 100, 0.8)})`
+    : "transparent";
+
   return (
     <>
-      {/* Weapon effect overlay */}
+      {/* Persistent burn overlay */}
       <div
         className="absolute inset-0 pointer-events-none transition-colors rounded-xl"
-        style={{ backgroundColor: weapon.effect.overlayColor(burnLevel) }}
+        style={{ backgroundColor: burnOverlay }}
       />
 
       {/* Boxing bruise marks */}

@@ -65,6 +65,11 @@ export function useDamage() {
     setIsDestroyed(true);
   }, []);
 
+  const destroyWithWeapon = useCallback((weapon: Weapon) => {
+    setDestroyedByWeapon(weapon);
+    setIsDestroyed(true);
+  }, []);
+
   const reset = useCallback(() => {
     stopDamage();
     setBurnLevel(0);
@@ -87,6 +92,7 @@ export function useDamage() {
     applyDamage,
     stopDamage,
     destroyByVolcano,
+    destroyWithWeapon,
     completeExplosion,
     reset,
     undoDestroy,
