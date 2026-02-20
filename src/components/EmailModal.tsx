@@ -48,6 +48,8 @@ export function EmailModal({ isOpen, onClose, onComplete }: EmailModalProps) {
     <div
       className="fixed top-0 left-0 w-screen h-screen z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm"
       onClick={onClose}
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
     >
       <div
         className="bg-gradient-to-b from-neutral-900 to-black border border-white/20 rounded-2xl p-8 max-w-md w-[90%] shadow-2xl mx-auto"
