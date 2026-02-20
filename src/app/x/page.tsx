@@ -104,26 +104,43 @@ function TweetPageContent() {
   const { burnLevel, isDestroyed, isExploding, destroyedByWeapon, applyDamage, stopDamage, destroyByVolcano, destroyWithWeapon, completeExplosion, reset, undoDestroy } = useDamage();
   const { play, stop } = useAudio();
 
-  // Track mouse position and handle tweet dragging
+  // Refs for values needed in global event handlers (to avoid effect re-runs)
+  const isHoldingRef = useRef(isHolding);
+  const currentWeaponRef = useRef(currentWeapon);
+  const isDraggingTweetRef = useRef(isDraggingTweet);
+  const inDangerZoneRef = useRef(inDangerZone);
+  const dragOffsetRef = useRef(dragOffset);
+
+  // Keep refs in sync
+  useEffect(() => { isHoldingRef.current = isHolding; }, [isHolding]);
+  useEffect(() => { currentWeaponRef.current = currentWeapon; }, [currentWeapon]);
+  useEffect(() => { isDraggingTweetRef.current = isDraggingTweet; }, [isDraggingTweet]);
+  useEffect(() => { inDangerZoneRef.current = inDangerZone; }, [inDangerZone]);
+  useEffect(() => { dragOffsetRef.current = dragOffset; }, [dragOffset]);
+
+  // Track pointer position and handle global pointer events (runs once)
+  // Supports both mouse and touch
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
+    // Shared logic for pointer move (mouse or touch)
+    const handlePointerMove = (clientX: number, clientY: number) => {
+      setMousePos({ x: clientX, y: clientY });
 
       // Update tweet drag position
-      if (isDraggingTweet) {
-        const newX = e.clientX - dragOffset.x;
-        const newY = e.clientY - dragOffset.y;
+      if (isDraggingTweetRef.current) {
+        const newX = clientX - dragOffsetRef.current.x;
+        const newY = clientY - dragOffsetRef.current.y;
         setTweetDragPos({ x: newX, y: newY });
 
         // Check if in danger zone (right 20% of screen)
         const dangerThreshold = window.innerWidth * 0.8;
-        const tweetRight = e.clientX;
-        setInDangerZone(tweetRight > dangerThreshold);
+        setInDangerZone(clientX > dangerThreshold);
       }
     };
 
-    const handleMouseUp = () => {
-      if (isDraggingTweet && inDangerZone) {
+    // Shared logic for pointer up (mouse or touch)
+    const handlePointerUp = () => {
+      // Handle tweet dragging release
+      if (isDraggingTweetRef.current && inDangerZoneRef.current) {
         // Trigger volcano eruption sequence
         play("/loud.mp3");
         play("/vulcano.mp3");
@@ -138,20 +155,56 @@ function TweetPageContent() {
         }, 2500);
       }
       setIsDraggingTweet(false);
-      if (!inDangerZone) {
-        // Reset position if not in danger zone
+      if (!inDangerZoneRef.current) {
         setTweetDragPos({ x: 0, y: 0 });
       }
       setInDangerZone(false);
+
+      // Handle weapon release (for hold-type weapons like flamethrower/spray)
+      setIsHolding(false);
+      stopDamage();
+      if (currentWeaponRef.current.damage.type === "hold") {
+        stop();
+      }
+    };
+
+    // Mouse handlers
+    const handleMouseMove = (e: MouseEvent) => handlePointerMove(e.clientX, e.clientY);
+    const handleMouseUp = () => handlePointerUp();
+
+    // Touch handlers
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const touch = e.touches[0];
+        handlePointerMove(touch.clientX, touch.clientY);
+        // Prevent scrolling while using weapons
+        if (isHoldingRef.current) {
+          e.preventDefault();
+        }
+      }
+    };
+    const handleTouchEnd = () => handlePointerUp();
+
+    // Prevent text selection while dragging
+    const handleSelectStart = (e: Event) => {
+      if (isHoldingRef.current) e.preventDefault();
     };
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
+    window.addEventListener("touchend", handleTouchEnd);
+    window.addEventListener("touchcancel", handleTouchEnd);
+    document.addEventListener("selectstart", handleSelectStart);
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchEnd);
+      document.removeEventListener("selectstart", handleSelectStart);
     };
-  }, [isDraggingTweet, dragOffset, inDangerZone]);
+  }, [play, stop, stopDamage]);
 
   // Drag explosion state
   const [isExplodingDrag, setIsExplodingDrag] = useState(false);
@@ -171,7 +224,10 @@ function TweetPageContent() {
     }
   }, [isDestroyed, tweetId, submittedUrl, destroyedByWeapon]);
 
-  const handleMouseDown = () => {
+  // Shared pointer down logic (works for both mouse and touch)
+  const handlePointerDown = (clientX: number, clientY: number) => {
+    // Update position immediately for touch
+    setMousePos({ x: clientX, y: clientY });
     setIsHolding(true);
 
     if (currentWeapon.sound?.active) {
@@ -180,28 +236,28 @@ function TweetPageContent() {
 
     // Add tomato splat effect when using tomato weapon (anywhere on screen)
     if (currentWeapon.id === "tomato") {
-      const newSplat = { id: splatIdRef.current++, x: mousePos.x, y: mousePos.y };
+      const newSplat = { id: splatIdRef.current++, x: clientX, y: clientY };
       setTomatoSplats((prev) => [...prev, newSplat]);
     }
 
     // Add flying letter effect when using EU weapon
     if (currentWeapon.id === "eu") {
-      const newLetter = { id: letterIdRef.current++, x: mousePos.x, y: mousePos.y };
+      const newLetter = { id: letterIdRef.current++, x: clientX, y: clientY };
       setFlyingLetters((prev) => [...prev, newLetter]);
     }
 
     // Add flying book effect when using Creative Act weapon (one per click)
     if (currentWeapon.id === "grenade") {
       play("/book.mp3");
-      setFlyingBooks(prev => [...prev, { id: bookIdRef.current++, x: mousePos.x, y: mousePos.y }]);
+      setFlyingBooks(prev => [...prev, { id: bookIdRef.current++, x: clientX, y: clientY }]);
     }
 
     // Add crack effect when using sledgehammer (near where the user clicks)
     if (currentWeapon.id === "hammer" && tweetId && tweetContainerRef.current) {
       const rect = tweetContainerRef.current.getBoundingClientRect();
       // Calculate position as percentage of the tweet container
-      let x = ((mousePos.x - rect.left) / rect.width) * 100;
-      let y = ((mousePos.y - rect.top) / rect.height) * 100;
+      let x = ((clientX - rect.left) / rect.width) * 100;
+      let y = ((clientY - rect.top) / rect.height) * 100;
       // Clamp to stay within bounds (5-95%)
       x = Math.max(5, Math.min(95, x));
       y = Math.max(5, Math.min(95, y));
@@ -221,6 +277,17 @@ function TweetPageContent() {
     }
 
     applyDamage(currentWeapon);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    handlePointerDown(e.clientX, e.clientY);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length > 0) {
+      const touch = e.touches[0];
+      handlePointerDown(touch.clientX, touch.clientY);
+    }
   };
 
   const handleMouseUp = () => {
@@ -284,8 +351,11 @@ function TweetPageContent() {
   return (
     <div
       ref={containerRef}
-      className={`fixed inset-0 ${currentWeapon.cursor ? "cursor-none" : "cursor-default"} transition-all duration-500 bg-cover bg-center bg-no-repeat`}
+      className={`fixed inset-0 ${currentWeapon.cursor ? "cursor-none" : "cursor-default"} transition-all duration-500 bg-cover bg-center bg-no-repeat select-none touch-none`}
       style={{ backgroundImage: "url('/bg.jpg')" }}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onTouchStart={handleTouchStart}
     >
       {/* Navigation - Mobile: centered column, Desktop: spread row */}
       <nav className="absolute top-0 left-0 w-full px-3 sm:px-6 pt-8 sm:pt-10 pb-2 sm:pb-4 z-50">
@@ -379,11 +449,7 @@ function TweetPageContent() {
       <SprayCanvas isActive={isHolding && currentWeapon.id === "spray"} mousePos={mousePos} />
 
       {/* Main content area */}
-      <div
-        className="flex items-center justify-center h-full"
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-      >
+      <div className="flex items-center justify-center h-full">
         {/* Input form when no tweet */}
         {!tweetId && !isDestroyed && (
           <TweetInput initialUrl={urlParam} onSubmit={handleTweetSubmit} />

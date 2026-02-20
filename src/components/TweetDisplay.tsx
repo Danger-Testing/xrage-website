@@ -120,15 +120,15 @@ export function TweetDisplay({
         src={`https://platform.twitter.com/embed/Tweet.html?id=${tweetId}&theme=light`}
         width="550"
         height={iframeHeight}
-        className="border-0 rounded-xl max-w-[90vw] sm:max-w-[550px] scale-[0.85] sm:scale-100 origin-top bg-white"
+        className="border-0 rounded-xl max-w-[90vw] sm:max-w-[550px] scale-[0.85] sm:scale-100 origin-top bg-white pointer-events-none"
         onLoad={() => {
           setIsLoading(false);
           onLoad?.();
         }}
       />
 
-      {/* Transparent overlay to block hover */}
-      <div className="absolute inset-0" />
+      {/* Transparent overlay to block interactions with iframe */}
+      <div className="absolute inset-0 z-10" />
 
       <DamageOverlay weapon={weapon} burnLevel={burnLevel} />
 
