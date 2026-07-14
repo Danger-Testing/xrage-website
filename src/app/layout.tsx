@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
@@ -43,6 +44,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <Script
+          id="appdrop-follow-widget"
+          src="https://www.appdrop.com/appdrop-follow-widget.js"
+          strategy="lazyOnload"
+        />
+      </head>
       <body className="antialiased">
         {children}
         <Analytics />

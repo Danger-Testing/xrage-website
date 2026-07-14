@@ -383,6 +383,17 @@ function TweetPageContent() {
           <a href="/" className="hover:opacity-80">
             <img src="/x.png" alt="xrageroom" className="h-12" />
           </a>
+          <div
+            aria-label="Follow Marc on Appdrop"
+            className="absolute right-4 top-7"
+            data-appdrop-creator="marcgmbh"
+            data-appdrop-creator-name="Marc"
+            data-appdrop-follow-widget
+            data-appdrop-source="xrageroom"
+            data-appdrop-variant="star"
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          />
           {tweetId && (
             <button
               onClick={handleReset}
@@ -402,10 +413,35 @@ function TweetPageContent() {
           <a href="/" className="absolute left-1/2 -translate-x-1/2 hover:opacity-80">
             <img src="/x.png" alt="xrageroom" className="h-24" />
           </a>
-          {/* Turtle in top right */}
-          <a href="https://dangertesting.com" target="_blank" rel="noopener noreferrer" className="absolute right-6 top-16 opacity-70 hover:opacity-100">
-            <img src="/turtle.svg" alt="Danger Testing" className="h-16" />
-          </a>
+          {/* Compact Appdrop follow widget for narrower desktop widths */}
+          <div
+            className="absolute right-10 top-[60px] lg:hidden"
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <div
+              aria-label="Follow Marc on Appdrop"
+              data-appdrop-creator="marcgmbh"
+              data-appdrop-creator-name="Marc"
+              data-appdrop-follow-widget
+              data-appdrop-source="xrageroom"
+              data-appdrop-variant="star"
+            />
+          </div>
+          {/* Full Appdrop follow widget for wide desktop widths */}
+          <div
+            className="absolute right-6 top-10 hidden lg:block"
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <div
+              aria-label="Follow Marc on Appdrop"
+              data-appdrop-creator="marcgmbh"
+              data-appdrop-creator-name="Marc"
+              data-appdrop-follow-widget
+              data-appdrop-source="xrageroom"
+            />
+          </div>
           {/* Reset button on left */}
           {tweetId && (
             <button
